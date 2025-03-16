@@ -1,0 +1,124 @@
+---
+title: "Lab 2"
+output: html_document
+date: "2023-09-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Downloading data
+
+```{r echo=FALSE}
+suppressWarnings(suppressMessages(library(quantmod)))
+```
+
+Use `getSymbols` to get data from yahoo or Google (default is yahoo)
+
+```{r}
+getSymbols("SPY")
+```
+You can find the 'symbols' or 'tickers' here: https://finance.yahoo.com/lookup
+
+Some popular tickers: 
+
+- SPY is SPDR S&P 500 ETF Trust ticker symbol
+- QQQ is Invesco QQQ Trust ticker symbol
+- ^GSPC is S&P500
+- PFE is Pfizer 
+- F is Ford
+
+There are several ways to see what is inside the data.
+
+For example:
+
+```{r}
+head(SPY)
+```
+```{r}
+tail(SPY)
+```
+
+If you wish to only import at a certain date e.g.,. 2023-01-01 to 2023-09-19, we can restrict the set the data to download:
+
+```{r}
+getSymbols("SPY", from='2023-01-01',to='2023-09-19')
+```
+Alternatively, load the whole series and restrict using xts function `first()` or `last()`:
+
+```{r}
+getSymbols("SPY")
+SPY_first <- first(SPY,'1 year')
+head(SPY_first)
+```
+
+```{r}
+SPY_last <- last(SPY,'1 year')
+head(SPY_last)
+```
+
+You can also import several stocks at the same time by using a vector:
+
+```{r}
+getSymbols(c('SPY','^GSPC','PFE'))
+```
+
+Alternatively, assign a vector of stocks and import based on the vector:
+
+```{r}
+stock_list <- c('SPY','^GSPC','PFE')
+getSymbols(stock_list, from='2023-01-01',to='2023-09-19')
+```
+
+`Quantmod` draw nice charts using `chartSeries()`
+(https://www.quantmod.com/examples/charting/):
+
+```{r}
+chartSeries(SPY_last)
+```
+
+You can select to display a shorter time-interval using the argument `subset`. 
+
+Also note that the option `theme` should be set to be `chartTheme(‘white’)` if intended for printing. The default option `chartTheme(‘black’)` is not printer-friendly.
+
+```{r}
+chartSeries(SPY,
+            subset='2023-08::2023-09',
+            theme=chartTheme('white'))
+```
+
+Use `TA=NULL' to omit displaying the trade volume.
+
+```{r}
+SPY_subset <- SPY['2023-08::2023-09']
+chartSeries(SPY_subset, 
+            TA=NULL, 
+            theme=chartTheme('white'))
+```
+
+To add the 'Open to Close' price change, use the `quantmod` function `addTA` which allows to display additional chart and `OpCl` function which computes the daily difference between opening and closing stock prices:
+
+```{r}
+addTA(OpCl(SPY_last),col='blue', type='h')
+```
+
+```{r}
+chartSeries(SPY_last, type="line", TA=NULL, theme=chartTheme('white'))
+addSMA(n=10,col = "black")
+addEMA(n=10,col = "red")
+```
+
+To extract columns, we use `Op`, `Hi`, `Lo`, `Cl`, `Vo` and `Ad`:
+
+```{r}
+Open <- Op(SPY_last)   #Open Price
+High <- Hi(SPY_last)    # High price
+Low <- Lo(SPY_last)  # Low price
+Close<- Cl(SPY_last)   #Close Price
+Volume <- Vo(SPY_last)   #Volume
+AdjClose <- Ad(SPY_last) # Adjusted close
+
+plot(Close)
+head(Close)
+```
